@@ -32,7 +32,7 @@ ol, ul {
 	width: 34px;
 }
 
-.square .win {
+.square.win {
 	background-color: #0a0;
 	color: #fff;
 }
