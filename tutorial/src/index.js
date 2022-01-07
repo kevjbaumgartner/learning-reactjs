@@ -60,7 +60,7 @@ class Game extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			history: [{squares: Array(9).fill(null)}],
+			history: [{ squares: Array(9).fill(null) }],
 			stepNumber: 0,
 			xIsNext: true
 		};
@@ -78,7 +78,7 @@ class Game extends React.Component {
 		const winner = calculateWinner(current.squares);
 		const moves = history.map((step, move) => {
 			const desc = move ?
-				'Go to move #' + move :
+				'Go to move #' + move + " (" + history[move].location + ")" :
 				'Go to game start';
 			// Returns a list item with a button element that has a jumpTo for the associated move
 			return (
@@ -95,7 +95,7 @@ class Game extends React.Component {
 			status = 'Winner: ' + winner;
 		}
 		// Improvement #6: When no one wins, display a message about the result being a draw
-		else if(this.state.stepNumber == 9 && winner == null){
+		else if (this.state.stepNumber == 9 && winner == null) {
 			status = 'Draw, no turns left';
 		}
 		else {
@@ -129,6 +129,18 @@ class Game extends React.Component {
 
 	// handleClick(i), method passed down to the square components that handles their click event
 	handleClick(i) {
+		// Improvement #1: Display the location for each move in the format (col, row) in the move history list
+		const locations = [
+			[1, 1],
+			[2, 1],
+			[3, 1],
+			[1, 2],
+			[2, 2],
+			[3, 2],
+			[1, 3],
+			[2, 3],
+			[3, 3]
+		];
 		const history = this.state.history.slice(0, this.state.stepNumber + 1);
 		const current = history[history.length - 1];
 		const squares = current.squares.slice();
@@ -143,6 +155,7 @@ class Game extends React.Component {
 		this.setState({
 			history: history.concat([{
 				squares: squares,
+				location: locations[i]
 			}]),
 			stepNumber: history.length,
 			xIsNext: !this.state.xIsNext
