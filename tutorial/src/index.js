@@ -5,6 +5,10 @@ import ReactDOM from 'react-dom';
 // CSS imports
 import './index.css';
 
+// Variables
+const numBoardRows = 3;
+const numBoardCols = 3;
+
 // Square - function component
 function Square(props) {
 	// Return a button element,
@@ -19,38 +23,47 @@ function Square(props) {
 
 // Board - react component
 class Board extends React.Component {
+
 	// renderSquare(i), method that returns a square component
 	renderSquare(i) {
 		// Return a square component,
 		// Pass the squares[i] and onClick(i) props given from the game component
 		return (
 			<Square
+				key={"square" + i}
 				value={this.props.squares[i]}
 				onClick={() => this.props.onClick(i)}
 			/>
 		);
 	}
 
-	// Renders a board component containing a 3 div by 3 square component grid
-	render() {
+	// Improvement #3: Rewrite Board to use two loops to make the squares instead of hardcoding them
+	// renderRow(row), renders 3 square components within a board-row div and returns them
+	renderRow(numRows) {
+		const cols = [];
+		const offset = numRows * numBoardCols;
+		for (let i = 0; i < numBoardCols; i++) {
+			cols.push(
+				this.renderSquare(offset + i)
+			);
+		}
 		return (
-			<div>
-				<div className="board-row">
-					{this.renderSquare(0)}
-					{this.renderSquare(1)}
-					{this.renderSquare(2)}
-				</div>
-				<div className="board-row">
-					{this.renderSquare(3)}
-					{this.renderSquare(4)}
-					{this.renderSquare(5)}
-				</div>
-				<div className="board-row">
-					{this.renderSquare(6)}
-					{this.renderSquare(7)}
-					{this.renderSquare(8)}
-				</div>
+			<div className="board-row" key={"row" + numRows}>
+				{cols}
 			</div>
+		)
+	}
+
+	// Renders a board component containing 3 rows of 3 square components
+	render() {
+		const board = [];
+		for (let i = 0; i < numBoardRows; i++) {
+			board.push(
+				this.renderRow(i)
+			);
+		}
+		return (
+			<div>{board}</div>
 		);
 	}
 }
@@ -78,12 +91,15 @@ class Game extends React.Component {
 		const winner = calculateWinner(current.squares);
 		const moves = history.map((step, move) => {
 			const desc = move ?
-				'Go to move #' + move + " (" + history[move].location + ")" :
+				'Go to move #' + move + " - " + history[move].entry + " at (" + history[move].location + ")" :
 				'Go to game start';
 			// Returns a list item with a button element that has a jumpTo for the associated move
 			return (
 				<li key={move}>
-					<button onClick={() => this.jumpTo(move)}>{desc}</button>
+					<button onClick={() => this.jumpTo(move)}>
+						{/* Improvement #2: Bold the currently selected item in the move list */}
+						{move == this.state.stepNumber ? <b>{desc}</b> : desc}
+					</button>
 				</li>
 			)
 		})
@@ -120,10 +136,10 @@ class Game extends React.Component {
 	}
 
 	// jumpTo(step), method that sets the state of the game component back to a specified move
-	jumpTo(move) {
+	jumpTo(step) {
 		this.setState({
-			stepNumber: move,
-			xIsNext: (move % 2) === 0,
+			stepNumber: step,
+			xIsNext: (step % 2) === 0,
 		});
 	}
 
@@ -154,8 +170,12 @@ class Game extends React.Component {
 		squares[i] = this.state.xIsNext ? 'X' : 'O';
 		this.setState({
 			history: history.concat([{
+				// Store the placement of the square components,
+				// the location of the most recent play,
+				// and whether it was an 'X', or 'O'
 				squares: squares,
-				location: locations[i]
+				location: locations[i],
+				entry: this.state.xIsNext ? 'X' : 'O'
 			}]),
 			stepNumber: history.length,
 			xIsNext: !this.state.xIsNext
