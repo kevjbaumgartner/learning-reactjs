@@ -93,7 +93,12 @@ class Game extends React.Component {
 		let status;
 		if (winner) {
 			status = 'Winner: ' + winner;
-		} else {
+		}
+		// Improvement #6: When no one wins, display a message about the result being a draw
+		else if(this.state.stepNumber == 9 && winner == null){
+			status = 'Draw, no turns left';
+		}
+		else {
 			status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
 		}
 
