@@ -75,64 +75,17 @@ class Game extends React.Component {
 		this.state = {
 			history: [{ squares: Array(9).fill(null) }],
 			stepNumber: 0,
-			xIsNext: true
+			xIsNext: true,
+			sortDescending: false
 		};
 	}
 
-	// Render
-	render() {
-		// Variables,
-		// history, from the game component's state,
-		// current, is the board history at the current step,
-		// winner, calculated at each render using the current,
-		// moves, list created by a mapping of the history array
-		const history = this.state.history;
-		const current = history[this.state.stepNumber];
-		const winner = calculateWinner(current.squares);
-		const moves = history.map((step, move) => {
-			const desc = move ?
-				'Go to move #' + move + " - " + history[move].entry + " at (" + history[move].location + ")" :
-				'Go to game start';
-			// Returns a list item with a button element that has a jumpTo for the associated move
-			return (
-				<li key={move}>
-					<button onClick={() => this.jumpTo(move)}>
-						{/* Improvement #2: Bold the currently selected item in the move list */}
-						{move == this.state.stepNumber ? <b>{desc}</b> : desc}
-					</button>
-				</li>
-			)
-		})
-
-		// Tracks and updates the status of the game,
-		// Who's turn it is next, and who wins
-		let status;
-		if (winner) {
-			status = 'Winner: ' + winner;
-		}
-		// Improvement #6: When no one wins, display a message about the result being a draw
-		else if (this.state.stepNumber == 9 && winner == null) {
-			status = 'Draw, no turns left';
-		}
-		else {
-			status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-		}
-
-		// Returns a board component, passes down the squares array at its current move, and the onClick method
-		return (
-			<div className="game">
-				<div className="game-board">
-					<Board
-						squares={current.squares}
-						onClick={(i) => this.handleClick(i)}
-					/>
-				</div>
-				<div className="game-info">
-					<div>{status}</div>
-					<ol>{moves}</ol>
-				</div>
-			</div>
-		);
+	// Improvement #4: Add a toggle button that lets you sort the moves in either ascending or descending order
+	// changeSort(), reverses the order of the sorting between ascending and descending
+	changeSort() {
+		this.setState({
+			sortDescending: !this.state.sortDescending
+		});
 	}
 
 	// jumpTo(step), method that sets the state of the game component back to a specified move
@@ -180,6 +133,63 @@ class Game extends React.Component {
 			stepNumber: history.length,
 			xIsNext: !this.state.xIsNext
 		});
+	}
+
+	// Render
+	render() {
+		// Variables,
+		// history, from the game component's state,
+		// current, is the board history at the current step,
+		// winner, calculated at each render using the current,
+		// moves, list created by a mapping of the history array
+		const history = this.state.history;
+		const current = history[this.state.stepNumber];
+		const winner = calculateWinner(current.squares);
+		const moves = history.map((step, move) => {
+			const desc = move ?
+				'Go to move #' + move + " - " + history[move].entry + " at (" + history[move].location + ")" :
+				'Go to game start';
+			// Returns a list item with a button element that has a jumpTo for the associated move
+			return (
+				<li key={move}>
+					<button onClick={() => this.jumpTo(move)}>
+						{/* Improvement #2: Bold the currently selected item in the move list */}
+						{move == this.state.stepNumber ? <b>{desc}</b> : desc}
+					</button>
+				</li>
+			);
+		})
+
+		// Tracks and updates the status of the game,
+		// Who's turn it is next, and who wins
+		let status;
+		if (winner) {
+			status = 'Winner: ' + winner;
+		}
+		// Improvement #6: When no one wins, display a message about the result being a draw
+		else if (this.state.stepNumber == 9 && winner == null) {
+			status = 'Draw, no turns left';
+		}
+		else {
+			status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+		}
+
+		// Returns a board component, passes down the squares array at its current move, and the onClick method
+		return (
+			<div className="game">
+				<div className="game-board">
+					<Board
+						squares={current.squares}
+						onClick={(i) => this.handleClick(i)}
+					/>
+				</div>
+				<div className="game-info">
+					<div>{status}</div>
+					<ol>{this.state.sortDescending ? moves.reverse() : moves}</ol>
+					<button onClick={() => this.changeSort()}>Sort: </button>
+				</div>
+			</div>
+		);
 	}
 }
 
