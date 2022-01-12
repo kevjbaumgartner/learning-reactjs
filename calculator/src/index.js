@@ -34,6 +34,7 @@ class Calculator extends React.Component {
 		super(props);
 		this.state = {
 			CalculatorButtons: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+			OperatorButtons: ['+', '-', '*', '/', '%', '='],
 			CurrentOperation: null,
 			CurrentStep: 0,
 			History: [
@@ -57,6 +58,19 @@ class Calculator extends React.Component {
 		);
 	}
 
+	renderOperator(i) {
+		const symbolArray = [];
+		symbolArray[i] = this.state.OperatorButtons[i];
+
+		return (
+			<CalculatorButton
+				key={'operator-' + i}
+				value={symbolArray[i]}
+				onClick={() => this.handleButton(symbolArray[i])}
+			/>
+		);
+	}
+
 	renderScreen() {
 		return (
 			<CalculatorScreen
@@ -67,19 +81,25 @@ class Calculator extends React.Component {
 
 	handleButton(i) {
 
+		const isEqual = (this.state.OperatorButtons[this.state.OperatorButtons.length - 1]) == i ? true : false;
+		if (isEqual) {
+			this.Evaluate();
+			return;
+		}
+
 		const mutaHistory = [...this.state.History];
 
-		const CurStep = this.state.CurrentStep;
-		const CurVal = i;
+		const curStep = this.state.CurrentStep;
+		const curVal = i;
 
-		let CurEq = mutaHistory[CurStep].CurrentEquation;
-		CurEq += ("" + CurVal);
+		let curEq = mutaHistory[curStep].CurrentEquation;
+		curEq += ("" + curVal);
 
 		this.setState(
 			{
 				CurrentStep: this.state.History.length,
-				CurrentValue: CurVal,
-				CurrentEquation: CurEq
+				CurrentValue: curVal,
+				CurrentEquation: curEq
 			}, () => {
 				this.updateHistory(mutaHistory);
 			}
@@ -101,6 +121,16 @@ class Calculator extends React.Component {
 		)
 	}
 
+	Evaluate() {
+		const equation = this.state.History[this.state.CurrentStep].CurrentEquation;
+		console.log(equation);
+		let answer = eval(equation);
+		console.log(answer);
+		this.setState({
+			CurrentValue: answer
+		});
+	}
+
 	render() {
 		const buttonGrid = [];
 		for (let i = 1; i <= buttonRows; i++) {
@@ -113,9 +143,19 @@ class Calculator extends React.Component {
 			buttonGrid.push(
 				<br key={'break-' + i} />
 			)
-		}
+		};
 		buttonGrid.push(
 			this.renderButton(0)
+		);
+
+		const operatorGrid = [];
+		for (let i = 0; i < this.state.OperatorButtons.length - 1; i++) {
+			operatorGrid.push(
+				this.renderOperator(i)
+			)
+		};
+		operatorGrid.push(
+			this.renderOperator(this.state.OperatorButtons.length - 1)
 		);
 
 		return (
@@ -123,6 +163,9 @@ class Calculator extends React.Component {
 				{this.renderScreen()}
 				<br />
 				{buttonGrid}
+				<br />
+				{operatorGrid}
+				<br />
 			</div>
 		)
 	}
