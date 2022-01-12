@@ -22,7 +22,7 @@ function CalculatorScreen(props) {
 			id='calculatorScreen'
 			type='field'
 			name='calculatorScreen'
-			value={props.CurrentValue}
+			value={props.CurrentEquation}
 			onChange={(e) => console.log(e.target.value)}
 		/>
 	);
@@ -75,39 +75,55 @@ class Calculator extends React.Component {
 		return (
 			<CalculatorScreen
 				CurrentValue={this.state.CurrentValue}
+				CurrentEquation={this.state.CurrentEquation}
 			/>
 		);
 	}
 
 	handleButton(i) {
-
+		//Determine what the input was
 		const isEqual = (this.state.OperatorButtons[this.state.OperatorButtons.length - 1]) == i ? true : false;
-		if (isEqual) {
-			this.Evaluate();
+		const isOperator = (this.state.OperatorButtons.includes(i));
+		// If Equals and the equation isn't empty, try evaluating
+		if (isEqual && !this.state.CurrentEquation == '') {
+			try{
+				this.Evaluate();
+			}catch(error){
+				console.log(error);
+			}
 			return;
 		}
+		// If Equals and the equation is empty, do nothing
+		else if (isEqual && this.state.CurrentEquation == '') {
+			return;
+		}
+		//else if(isOperator && !isEqual){}
+		else {
+			const mutaHistory = [...this.state.History];
 
-		const mutaHistory = [...this.state.History];
+			const curStep = this.state.CurrentStep;
+			const curVal = i;
 
-		const curStep = this.state.CurrentStep;
-		const curVal = i;
+			let curEq = mutaHistory[curStep].CurrentEquation;
+			curEq += ("" + curVal);
 
-		let curEq = mutaHistory[curStep].CurrentEquation;
-		curEq += ("" + curVal);
+			this.setState(
+				{
+					CurrentStep: this.state.History.length,
+					CurrentValue: curVal,
+					CurrentEquation: curEq
+				}, () => {
+					this.updateHistory();
+				}
+			);
+		}
 
-		this.setState(
-			{
-				CurrentStep: this.state.History.length,
-				CurrentValue: curVal,
-				CurrentEquation: curEq
-			}, () => {
-				this.updateHistory(mutaHistory);
-			}
-		);
+
 	}
 
 	// Callback functions
-	updateHistory(mutaHistory) {
+	updateHistory() {
+		const mutaHistory = [...this.state.History];
 		this.setState({
 			History: mutaHistory.concat([{
 				CurrentValue: this.state.CurrentValue,
@@ -127,7 +143,11 @@ class Calculator extends React.Component {
 		let answer = eval(equation);
 		console.log(answer);
 		this.setState({
-			CurrentValue: answer
+			CurrentStep: this.state.History.length,
+			CurrentValue: answer,
+			CurrentEquation: ("" + answer)
+		}, () => {
+			this.updateHistory();
 		});
 	}
 
@@ -161,11 +181,11 @@ class Calculator extends React.Component {
 		return (
 			<div>
 				{this.renderScreen()}
-				<br />
+				<br /><br />
 				{buttonGrid}
-				<br />
+				<br /><br />
 				{operatorGrid}
-				<br />
+				<br /><br />
 			</div>
 		)
 	}
