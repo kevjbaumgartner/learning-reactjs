@@ -13,7 +13,7 @@ function CalculatorButton(props) {
 			{props.value}
 		</button>
 	);
-};
+}
 
 // CalculatorScreen - React function component to render the calculator display screen
 function CalculatorScreen(props) {
@@ -26,7 +26,7 @@ function CalculatorScreen(props) {
 			onChange={(e) => console.log(e.target.value)}
 		/>
 	);
-};
+}
 
 // Calculator - React class component to encapsulate and handle the state of all prior components
 class Calculator extends React.Component {
@@ -80,16 +80,26 @@ class Calculator extends React.Component {
 		);
 	}
 
+	loadBackup(i, j){
+		this.setState({
+			CurrentStep: j,
+			CurrentValue: i.CurrentValue,
+			CurrentEquation: i.CurrentEquation
+		},
+		() => {
+			console.log(this.state.CurrentStep);
+		});
+	}
+
 	handleButton(i) {
 		//Determine what the input was
 		const isEqual = (this.state.OperatorButtons[this.state.OperatorButtons.length - 1]) == i ? true : false;
-		const isOperator = (this.state.OperatorButtons.includes(i));
 		// If Equals and the equation isn't empty, try evaluating
 		if (isEqual && !this.state.CurrentEquation == '') {
 			try{
-				this.Evaluate();
+				this.evaluateEquation();
 			}catch(error){
-				console.log(error);
+				return;
 			}
 			return;
 		}
@@ -97,7 +107,6 @@ class Calculator extends React.Component {
 		else if (isEqual && this.state.CurrentEquation == '') {
 			return;
 		}
-		//else if(isOperator && !isEqual){}
 		else {
 			const mutaHistory = [...this.state.History];
 
@@ -117,8 +126,6 @@ class Calculator extends React.Component {
 				}
 			);
 		}
-
-
 	}
 
 	// Callback functions
@@ -137,7 +144,7 @@ class Calculator extends React.Component {
 		)
 	}
 
-	Evaluate() {
+	evaluateEquation() {
 		const equation = this.state.History[this.state.CurrentStep].CurrentEquation;
 		console.log(equation);
 		let answer = eval(equation);
@@ -152,6 +159,16 @@ class Calculator extends React.Component {
 	}
 
 	render() {
+		const backups = this.state.History.map((objects, step) => {
+			return(
+				<li key={step} className='backupItem'>
+					<button onClick={() => this.loadBackup(objects, step)}>
+						Back to step {step}
+					</button>
+				</li>	
+			)
+		});
+
 		const buttonGrid = [];
 		for (let i = 1; i <= buttonRows; i++) {
 			const offset = (i - 1) * buttonCols;
@@ -186,6 +203,9 @@ class Calculator extends React.Component {
 				<br /><br />
 				{operatorGrid}
 				<br /><br />
+				<ol>
+					{backups}
+				</ol>
 			</div>
 		)
 	}
