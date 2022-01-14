@@ -85,9 +85,8 @@ class Calculator extends React.Component {
 			CurrentStep: j,
 			CurrentValue: i.CurrentValue,
 			CurrentEquation: i.CurrentEquation
-		},
-		() => {
-			console.log(this.state.CurrentStep);
+		}, ()=>{
+			console.log(this.state.CurrentStep)
 		});
 	}
 
@@ -108,9 +107,10 @@ class Calculator extends React.Component {
 			return;
 		}
 		else {
-			const mutaHistory = [...this.state.History];
+			const mutaHistory = [this.state.History.slice(0, this.state.CurrentStep)];
 
 			const curStep = this.state.CurrentStep;
+			console.log("curstep:" + curStep);
 			const curVal = i;
 
 			let curEq = mutaHistory[curStep].CurrentEquation;
@@ -118,7 +118,6 @@ class Calculator extends React.Component {
 
 			this.setState(
 				{
-					CurrentStep: this.state.History.length,
 					CurrentValue: curVal,
 					CurrentEquation: curEq
 				}, () => {
@@ -130,12 +129,13 @@ class Calculator extends React.Component {
 
 	// Callback functions
 	updateHistory() {
-		const mutaHistory = [...this.state.History];
+		const mutaHistory = [this.state.History.slice(0, this.state.CurrentStep)];
 		this.setState({
 			History: mutaHistory.concat([{
 				CurrentValue: this.state.CurrentValue,
 				CurrentEquation: this.state.CurrentEquation
-			}])
+			}]),
+			CurrentStep: this.state.History.length
 		},
 			() => {
 				console.log("step:" + this.state.CurrentStep);
@@ -150,7 +150,7 @@ class Calculator extends React.Component {
 		let answer = eval(equation);
 		console.log(answer);
 		this.setState({
-			CurrentStep: this.state.History.length,
+			//CurrentStep: this.state.History.length,
 			CurrentValue: answer,
 			CurrentEquation: ("" + answer)
 		}, () => {
@@ -163,7 +163,7 @@ class Calculator extends React.Component {
 			return(
 				<li key={step} className='backupItem'>
 					<button onClick={() => this.loadBackup(objects, step)}>
-						Back to step {step}
+						Back to step {step}: {this.state.History[step].CurrentEquation}
 					</button>
 				</li>	
 			)
