@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 const buttonRows = 3;
 const buttonCols = 3;
 
-// CalculatorButton - React function component to render the 10 number buttons
+// CalculatorButton - React function component to render the calculator buttons
 function CalculatorButton(props) {
 	return (
 		<button className='calculatorButton' onClick={props.onClick}>
@@ -28,7 +28,7 @@ function CalculatorScreen(props) {
 	);
 }
 
-// Calculator - React class component to encapsulate and handle the state of all prior components
+// Calculator - React class component to encapsulate and handle the state of all prior function components
 class Calculator extends React.Component {
 	constructor(props) {
 		super(props);
@@ -39,15 +39,16 @@ class Calculator extends React.Component {
 			CurrentStep: 0,
 			History: [
 				{
-					CurrentValue: 0,
+					CurrentValue: null,
 					CurrentEquation: ""
 				}
 			],
-			CurrentValue: 0,
+			CurrentValue: null,
 			CurrentEquation: ""
 		}
 	}
 
+	// Return a CalculatorButton element with a number within it
 	renderButton(i) {
 		return (
 			<CalculatorButton
@@ -58,6 +59,7 @@ class Calculator extends React.Component {
 		);
 	}
 
+	// Return a CalculatorButton element with an operator within it
 	renderOperator(i) {
 		const symbolArray = [];
 		symbolArray[i] = this.state.OperatorButtons[i];
@@ -71,6 +73,7 @@ class Calculator extends React.Component {
 		);
 	}
 
+	// Return a CalculatorScreen element
 	renderScreen() {
 		return (
 			<CalculatorScreen
@@ -80,24 +83,26 @@ class Calculator extends React.Component {
 		);
 	}
 
-	loadBackup(i, j){
+	// Set the state of the calculator elements to a previous version held within the History property
+	// i, represents the Objects
+	// j, represents the Step
+	loadBackup(i, j) {
 		this.setState({
 			CurrentStep: j,
 			CurrentValue: i.CurrentValue,
 			CurrentEquation: i.CurrentEquation
-		}, ()=>{
-			console.log(this.state.CurrentStep)
 		});
 	}
 
+	// Resolve the input of a CalculatorButton onClick event
 	handleButton(i) {
 		//Determine what the input was
 		const isEqual = (this.state.OperatorButtons[this.state.OperatorButtons.length - 1]) == i ? true : false;
 		// If Equals and the equation isn't empty, try evaluating
 		if (isEqual && !this.state.CurrentEquation == '') {
-			try{
+			try {
 				this.evaluateEquation();
-			}catch(error){
+			} catch (error) {
 				return;
 			}
 			return;
@@ -107,15 +112,11 @@ class Calculator extends React.Component {
 			return;
 		}
 		else {
-			const mutaHistory = [this.state.History.slice(0, this.state.CurrentStep)];
-
 			const curStep = this.state.CurrentStep;
-			console.log("curstep:" + curStep);
+			const mutaHistory = [this.state.History.slice(0, this.state.CurrentStep + 1)];
 			const curVal = i;
-
-			let curEq = mutaHistory[curStep].CurrentEquation;
+			let curEq = mutaHistory[0][curStep].CurrentEquation;
 			curEq += ("" + curVal);
-
 			this.setState(
 				{
 					CurrentValue: curVal,
@@ -127,30 +128,23 @@ class Calculator extends React.Component {
 		}
 	}
 
-	// Callback functions
+	// Callback function for handleButton()
 	updateHistory() {
-		const mutaHistory = [this.state.History.slice(0, this.state.CurrentStep)];
+		const mutaHistory = [this.state.History.slice(0, this.state.CurrentStep + 1)][0];
 		this.setState({
 			History: mutaHistory.concat([{
 				CurrentValue: this.state.CurrentValue,
 				CurrentEquation: this.state.CurrentEquation
 			}]),
-			CurrentStep: this.state.History.length
-		},
-			() => {
-				console.log("step:" + this.state.CurrentStep);
-				console.log(this.state.History);
-			}
-		)
+			CurrentStep: mutaHistory.length
+		});
 	}
 
+	// Use the "eval" method to evaluate all values and operators in the CurrentEquation property to a solvable equation
 	evaluateEquation() {
 		const equation = this.state.History[this.state.CurrentStep].CurrentEquation;
-		console.log(equation);
 		let answer = eval(equation);
-		console.log(answer);
 		this.setState({
-			//CurrentStep: this.state.History.length,
 			CurrentValue: answer,
 			CurrentEquation: ("" + answer)
 		}, () => {
@@ -160,12 +154,12 @@ class Calculator extends React.Component {
 
 	render() {
 		const backups = this.state.History.map((objects, step) => {
-			return(
+			return (
 				<li key={step} className='backupItem'>
 					<button onClick={() => this.loadBackup(objects, step)}>
 						Back to step {step}: {this.state.History[step].CurrentEquation}
 					</button>
-				</li>	
+				</li>
 			)
 		});
 
