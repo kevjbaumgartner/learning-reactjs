@@ -13,27 +13,51 @@ function Search(props) {
 
 function Card(props) {
 	return (
-		<div key={"card-" + props.cardName} className='grid-card' onClick={props.onClick}>
-			<img src={props.cardImg} />
+		<div key={"card-" + props.cardName} className='grid-card'>
+			<img src={props.cardImg} alt={props.cardAlt} />
 		</div>
 	);
 };
 
-class Grid extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = {
+function Grid(props) {
+	const cardArray = props.cardArray;
+	let returnArray = [];
 
-		};
-	};
+	let cardName = "";
+	let cardImg = "";
+	let cardAlt = "";
 
-	render() {
-		return (
-			<div>
+	if (cardArray != null && cardArray.status != 400) {
+		console.log(cardArray);
+		for (let i = 0; i < cardArray.data.length; i++) {
 
-			</div>
-		);
-	};
+			try{
+				cardName = cardArray.data[i].name;
+				cardImg = cardArray.data[i].image_uris.normal;
+				cardAlt = cardName;	
+			}catch(error){
+				console.log(error)
+				continue;
+			}
+			
+
+			console.log(cardArray.data[i]);
+			returnArray.push(
+				<Card
+					cardName={cardName}
+					cardImg={cardImg}
+					cardAlt={cardAlt}
+				/>
+			);
+		}
+		console.log(returnArray);
+	}
+
+	return (
+		<div>
+			{returnArray}
+		</div>
+	);
 };
 
 class Page extends React.Component {
@@ -65,24 +89,38 @@ class Page extends React.Component {
 		);
 	};
 
+	renderGrid() {
+		return (
+			<Grid
+				cardArray={this.state.APIArray}
+			/>
+		);
+	};
+
 	apiCall() {
 		const searchString = "https://api.scryfall.com/cards/search?q=";
 		let queryString = searchString + this.state.SearchBarValue;
-		fetch(queryString).then(
-			results => results.json()).then(
+		try {
+			fetch(queryString).then(
+				results => results.json()
+			).then(
 				(json) => {
 					this.setState({
 						APIArray: json
 					});
 				}
 			)
+		} catch (error) {
+			console.log(error);
+		}
+		console.log("API call made: " + queryString);
 	}
 
 	render() {
 		return (
 			<div>
 				{this.renderSearchBar()}
-				<Grid />
+				{this.renderGrid()}
 			</div>
 		);
 	};
