@@ -1,0 +1,46 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+/* root is the JSX parent element */
+#root {
+    display: flexbox;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#search {
+    width: 100%;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+#grid {
+    width: 80%;
+    margin: 0 10%;
+    padding: 0;
+    font-size: 0;
+    user-select: none;
+}
+
+.grid-card {
+    display: inline-flex;
+    margin: 0.5%;
+    padding: 0;
+    width: 24%;
+    background-color: transparent;
+    border-radius: 4.5% / 3.5%;
+    box-shadow: 1px 2px 6px 0px #999;
+    cursor: pointer;
+}
+
+.grid-card:hover {}
+
+.grid-card img {
+    width: 100%;
+}

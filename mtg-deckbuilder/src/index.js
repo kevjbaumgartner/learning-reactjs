@@ -4,7 +4,7 @@ import './index.css';
 
 function Search(props) {
 	return (
-		<div>
+		<div id="search">
 			<input type='input' value={props.SearchBarValue} onChange={props.onChange} />
 			<button onClick={props.onClick}>Search</button>
 		</div>
@@ -13,9 +13,7 @@ function Search(props) {
 
 function Card(props) {
 	return (
-		<div key={"card-" + props.cardName} className='grid-card'>
-			<img src={props.cardImg} alt={props.cardAlt} />
-		</div>
+		<img key={"card-" + props.cardName} className='grid-card' src={props.cardImg} alt={props.cardAlt} onClick={props.cardOnClick} />
 	);
 };
 
@@ -28,6 +26,7 @@ function Grid(props) {
 	let cardAlt = "";
 
 	if (cardArray != null && cardArray.status != 400) {
+		console.log("Card Array:")
 		console.log(cardArray);
 		for (let i = 0; i < cardArray.data.length; i++) {
 
@@ -47,14 +46,16 @@ function Grid(props) {
 					cardName={cardName}
 					cardImg={cardImg}
 					cardAlt={cardAlt}
+					cardOnClick={props.cardOnClick}
 				/>
 			);
 		}
+		console.log("Return Array:")
 		console.log(returnArray);
 	}
 
 	return (
-		<div>
+		<div id="grid">
 			{returnArray}
 		</div>
 	);
@@ -65,7 +66,9 @@ class Page extends React.Component {
 		super(props);
 		this.state = {
 			SearchBarValue: "",
-			APIArray: null
+			APIArray: null,
+			DisplayedArray: null,
+			SavedArray: null,
 		};
 	};
 
@@ -75,8 +78,12 @@ class Page extends React.Component {
 		});
 	};
 
-	handleClick = () => {
+	handleSearch = () => {
 		this.apiCall();
+	};
+
+	handleClick = (e) => {
+		console.log(e.target.alt);
 	};
 
 	renderSearchBar() {
@@ -84,7 +91,7 @@ class Page extends React.Component {
 			<Search
 				SearchBarValue={this.state.SearchBarValue}
 				onChange={this.handleChange}
-				onClick={this.handleClick}
+				onClick={this.handleSearch}
 			/>
 		);
 	};
@@ -93,6 +100,7 @@ class Page extends React.Component {
 		return (
 			<Grid
 				cardArray={this.state.APIArray}
+				cardOnClick={this.handleClick}
 			/>
 		);
 	};
