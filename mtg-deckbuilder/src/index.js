@@ -2,6 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+function Menu(props) {
+	return (
+		<div id="menu">
+			<button onClick={props.onClick}>Saved Cards</button>
+		</div>
+	);
+};
+
 function Search(props) {
 	return (
 		<div id="search">
@@ -13,50 +21,14 @@ function Search(props) {
 
 function Card(props) {
 	return (
-		<img key={"card-" + props.cardName} className='grid-card' src={props.cardImg} alt={props.cardAlt} onClick={props.cardOnClick} />
+		<img className='grid-card' src={props.cardImg} alt={props.cardAlt} onClick={props.cardOnClick} />
 	);
 };
 
 function Grid(props) {
-	const cardArray = props.cardArray;
-	let returnArray = [];
-
-	let cardName = "";
-	let cardImg = "";
-	let cardAlt = "";
-
-	if (cardArray != null && cardArray.status != 400) {
-		console.log("Card Array:")
-		console.log(cardArray);
-		for (let i = 0; i < cardArray.data.length; i++) {
-
-			try{
-				cardName = cardArray.data[i].name;
-				cardImg = cardArray.data[i].image_uris.normal;
-				cardAlt = cardName;	
-			}catch(error){
-				console.log(error)
-				continue;
-			}
-			
-
-			console.log(cardArray.data[i]);
-			returnArray.push(
-				<Card
-					cardName={cardName}
-					cardImg={cardImg}
-					cardAlt={cardAlt}
-					cardOnClick={props.cardOnClick}
-				/>
-			);
-		}
-		console.log("Return Array:")
-		console.log(returnArray);
-	}
-
 	return (
 		<div id="grid">
-			{returnArray}
+			{props.DisplayedArray}
 		</div>
 	);
 };
@@ -68,7 +40,8 @@ class Page extends React.Component {
 			SearchBarValue: "",
 			APIArray: null,
 			DisplayedArray: null,
-			SavedArray: null,
+			SavedArray: [],
+			ShowSaved: false
 		};
 	};
 
@@ -82,9 +55,31 @@ class Page extends React.Component {
 		this.apiCall();
 	};
 
-	handleClick = (e) => {
-		console.log(e.target.alt);
+	handleClick(i) {
+		let selectedObject = this.state.DisplayedArray[i];
+		const tempArray = this.state.SavedArray;
+		tempArray.push(selectedObject);
+
+		this.setState({
+			SavedArray: tempArray
+		}, function () {
+			console.log(this.state.SavedArray);
+		});
 	};
+
+	handlePageSwap = () => {
+		this.setState({
+			ShowSaved: true
+		});
+	};
+
+	renderMenuBar() {
+		return (
+			<Menu
+				onClick={this.handlePageSwap}
+			/>
+		)
+	}
 
 	renderSearchBar() {
 		return (
@@ -96,11 +91,10 @@ class Page extends React.Component {
 		);
 	};
 
-	renderGrid() {
+	renderGrid(bool) {
 		return (
 			<Grid
-				cardArray={this.state.APIArray}
-				cardOnClick={this.handleClick}
+				DisplayedArray={!bool ? this.state.DisplayedArray : this.state.SavedArray}
 			/>
 		);
 	};
@@ -109,26 +103,72 @@ class Page extends React.Component {
 		const searchString = "https://api.scryfall.com/cards/search?q=";
 		let queryString = searchString + this.state.SearchBarValue;
 		try {
+			console.log("API call made: " + queryString);
 			fetch(queryString).then(
 				results => results.json()
 			).then(
 				(json) => {
 					this.setState({
 						APIArray: json
+					}, function () {
+						this.fillDisplayedArray();
 					});
 				}
 			)
 		} catch (error) {
 			console.log(error);
 		}
-		console.log("API call made: " + queryString);
-	}
+	};
+
+	fillDisplayedArray() {
+		const cardArray = this.state.APIArray;
+		let returnArray = [];
+
+		let cardName = "";
+		let cardImg = "";
+		let cardAlt = "";
+
+		if (cardArray != null && cardArray.status != 400) {
+			console.log("Card Array:")
+			console.log(cardArray);
+			for (let i = 0; i < cardArray.data.length; i++) {
+				try {
+					cardName = cardArray.data[i].name;
+					cardImg = cardArray.data[i].image_uris.normal;
+					cardAlt = cardName;
+				} catch (error) {
+					console.log(error)
+					continue;
+				}
+
+				console.log(cardArray.data[i]);
+				returnArray.push(
+					<Card
+						key={"card-" + cardName}
+						cardName={cardName}
+						cardImg={cardImg}
+						cardAlt={cardAlt}
+						cardOnClick={() => this.handleClick(i)}
+					/>
+				);
+			}
+			console.log("Return Array:")
+			console.log(returnArray);
+
+			this.setState({
+				DisplayedArray: returnArray
+			}, function () {
+				console.log(this.state.DisplayedArray);
+			});
+		};
+	};
 
 	render() {
 		return (
 			<div>
-				{this.renderSearchBar()}
-				{this.renderGrid()}
+				{this.renderMenuBar()}
+				{!this.state.ShowSaved ? this.renderSearchBar() : ""}
+				{!this.state.ShowSaved ? this.renderGrid(false) : this.renderGrid(true)}
 			</div>
 		);
 	};
