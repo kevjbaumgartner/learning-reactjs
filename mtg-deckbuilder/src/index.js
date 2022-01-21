@@ -11,7 +11,9 @@ import './index.css';
 function Menu(props) {
 	return (
 		<div id="menu">
-			<button onClick={props.onClick}>{!props.ShowSaved ? "Saved Cards" : "Search"}</button>
+			<button onClick={props.onClick}>
+				{!props.ShowSaved ? "Saved Cards" : "Search"}
+			</button>
 		</div>
 	);
 };
@@ -20,8 +22,14 @@ function Menu(props) {
 function Search(props) {
 	return (
 		<div id="search">
-			<input type='field' value={props.SearchBarValue} onChange={props.onChange} />
-			<button onClick={props.onClick}>Search</button>
+			<input 
+				type='field'
+				value={props.SearchBarValue}
+				onChange={props.onChange}
+			/>
+			<button onClick={props.onClick}>
+				Search
+			</button>
 		</div>
 	);
 };
@@ -29,7 +37,12 @@ function Search(props) {
 // <Card /> arrays calculated in <Page /> then rendered in <Grid />
 function Card(props) {
 	return (
-		<img className='grid-card' src={props.cardImg} alt={props.cardAlt} onClick={props.cardOnClick} />
+		<img
+			className='grid-card'
+			src={props.cardSrc}
+			alt={props.cardAlt}
+			onClick={props.onClick}
+		/>
 	);
 };
 
@@ -48,14 +61,14 @@ function Grid(props) {
 class Page extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {				// State order:
-			SearchBarValue: "", 	// 1. String - value searched for using the API
-			APIArray: null, 		// 2. List - contains the exact JSON returned by the API
-			ShowSaved: false, 		// 3. Boolean - true = show SavedArray <Card />s, false = show <Search /> bar and SearchedArray <Card />s
-			SearchedArray: null,	// 4a. Array - APIArray JSON parsed into <Card /> elements
-			SavedArray: [], 		// 4b. Array - saved <Card /> elements
-			VirtualDisplayedArray: null,
-			PhysicalDisplayedArray: null 	// 5. Array - holds the currently displayed <Card /> elements dependant on ShowSaved
+		this.state = {					// State order:
+			SearchBarValue: "", 		// 1. String - value searched for using the API
+			APIArray: [], 				// 2. List - contains the exact JSON returned by the API
+			ShowSaved: false, 			// 3. Boolean - true = show SavedArray <Card />s, false = show <Search /> bar and ParsedArray <Card />s
+			ParsedArray: [],			// 4a. Array - APIArray JSON parsed into a dictionary (name:data)
+			SavedArray: [], 			// 4b. Array - saved <Card /> elements
+			VirtualDisplayedArray: [],	// 5a. Array - holds the currently displayed card's dictionary values
+			PhysicalDisplayedArray: [] 	// 5b. Array - holds the currently displayed card's <Card /> elements
 		};
 	};
 
@@ -77,26 +90,27 @@ class Page extends React.Component {
 
 	// <Grid /> <Card /> onClick handler
 	handleClick(i) {
-		if(this.state.ShowSaved) {
-			console.log(i);
-		} else { // Get the clicked <Card /> element from the SearchedArray and add it to the SavedArray
-			let selectedObject = this.state.VirtualDisplayedArray[i];
-			const tempArray = this.state.SavedArray;
-			tempArray.push(selectedObject);
+		let tempArray = this.state.SavedArray; // Mutable SavedArray
 
-			this.setState({
-				SavedArray: tempArray
-			}, function () {
-				console.log(this.state.SavedArray);
-			});
+		if (this.state.ShowSaved) { // Remove the clicked <Card /> element's entry from SavedArray
+			tempArray.splice(i, 1);
+		} else { // Get the clicked <Card /> element's entry from the VirtualDisplayedArray and add it to the SavedArray
+			let selectedObject = this.state.VirtualDisplayedArray[i];
+			tempArray.push(selectedObject);
 		};
+
+		this.setState({
+			SavedArray: tempArray
+		}, function () {
+			this.fulfillDisplay();
+		});
 	};
 
 	// <Menu /> button onClick handler
 	handlePageSwap = () => {
 		this.setState({
 			ShowSaved: (!this.state.ShowSaved ? true : false)
-		}, function (){
+		}, function () {
 			this.fulfillDisplay();
 		});
 	};
@@ -110,8 +124,8 @@ class Page extends React.Component {
 				ShowSaved={this.state.ShowSaved}
 				onClick={this.handlePageSwap}
 			/>
-		)
-	}
+		);
+	};
 
 	// <Search />
 	renderSearchBar() {
@@ -149,123 +163,80 @@ class Page extends React.Component {
 					this.setState({
 						APIArray: json
 					}, function () {
-						this.parse();//Results();
+						this.parseResults();
 					});
 				}
 			)
 		} catch (error) {
 			console.log(error);
-		}
+		};
 	};
 
-	parse() {
+	// Pass card data into a key:value array (dictionary), and pass that to ParsedArray
+	parseResults() {
 		const rawResults = this.state.APIArray;
-		let rawData = rawResults.data;
+		let rawData = rawResults.data; // Actual card data is stored in the [Object].data
 
-		let parsedCards = []; // name : data 
-		for (let i = 0; i < rawData.length; i++){
-			parsedCards.push({
+		let ParsedArray = []; // name : data 
+		for (let i = 0; i < rawData.length; i++) {
+			ParsedArray.push({
 				name: rawData[i].name,
 				data: rawData[i]
-			})
-		}
+			});
+		};
 
 		this.setState({
-			ParsedCards: parsedCards
-		}, function() {
+			ParsedArray: ParsedArray
+		}, function () {
 			this.fulfillDisplay();
 		});
 	};
 
+	// Renders the 'DisplayedArray' corresponding to the status of ShowSaved
+	// Splits the <Grid /> component into PhysicalDisplayedArray and VirtualDisplayedArray
+	// Physical contains the actual <Card /> elements,
+	// Virtual contains the respective dictionary values (name:data)
 	fulfillDisplay() {
-		const parsedCards = this.state.ParsedCards;
-		const savedCards = this.state.SavedArray;
+		const ParsedArray = this.state.ParsedArray; // Cards searched for
+		const SavedArray = this.state.SavedArray; 	// Cards saved
 		const ShowSaved = this.state.ShowSaved;
 
-		let desired = !ShowSaved ? parsedCards : savedCards;
-		let displayedArray = [];
+		let backendArray = !ShowSaved ? ParsedArray : SavedArray;
+		let frontendArray = [];
 
-		for(let i = 0; i < desired.length; i++){
-			displayedArray.push(
-				<Card
-					key={"card-" + i + "-" + desired[i].name}
-					cardName={desired[i].name}
-					cardImg={desired[i].data.image_uris.normal != undefined ? desired[i].data.image_uris.normal : ""}
-					cardAlt={desired[i].name}
-					cardData={desired[i].data}
-					cardOnClick={() => this.handleClick(i)}
-				/>
-			)
-		}
+		for (let i = 0; i < backendArray.length; i++) {
+			try{
+				let key = ("card-" + i + "-" + backendArray[i].name);
+				let cardName = backendArray[i].name;
+				let cardSrc = (backendArray[i].data.image_uris.normal != undefined ? backendArray[i].data.image_uris.normal : "");
+				let cardData = backendArray[i].data;
+				let onClick = () => this.handleClick(i);
+
+				frontendArray.push(
+					<Card
+						key={key}
+						cardName={cardName}
+						cardSrc={cardSrc}
+						cardAlt={cardName}
+						cardData={cardData}
+						onClick={onClick}
+					/>
+				);
+			} catch (error) {
+				backendArray.splice(i, 1); // If any of the variables above cannot be retrieved, remove that entry
+				i--; // Decrement to accomodate for the missing entry
+				console.log(error);
+				continue;
+			};
+		};
 
 		this.setState({
-			VirtualDisplayedArray: desired,
-			PhysicalDisplayedArray: displayedArray
-		}, function () {
-			console.log(this.state.VirtualDisplayedArray);
+			VirtualDisplayedArray: backendArray,
+			PhysicalDisplayedArray: frontendArray
 		});
 	};
 
-	// // Parse important data from the raw JSON return and store it in SearchedArray
-	// parseResults() {
-	// 	let unparsedArray = this.state.APIArray; // Create mutable version of the results
-	// 	let SearchedArray = []; // local SearchedArray to be returned for the state SearchedArray
-
-	// 	// Variables to parse results for
-	// 	let cardName = "";
-	// 	let cardImg = "";
-	// 	let cardAlt = "";
-
-	// 	// If the JSON returned actually has content
-	// 	if (unparsedArray != null && unparsedArray.status != 400) {
-	// 		console.log("Unparsed Array:")
-	// 		console.log(unparsedArray);
-	// 		for (let i = 0; i < unparsedArray.data.length; i++) {
-	// 			try {
-	// 				cardName = unparsedArray.data[i].name;
-	// 				cardImg = unparsedArray.data[i].image_uris.normal;
-	// 				cardAlt = cardName;
-	// 			} catch (error) {
-	// 				unparsedArray.data.splice(i, 1); // If any of the variables above cannot be parsed, remove that entry from the mutable array
-	// 				i--; // Decrement to accomodate for the missing card
-	// 				console.log(error);
-	// 				continue;
-	// 			}
-	// 			console.log(unparsedArray.data[i]);
-				
-	// 			SearchedArray.push(
-	// 				<Card
-	// 					key={"card-" + cardName}
-	// 					cardName={cardName}
-	// 					cardImg={cardImg}
-	// 					cardAlt={cardAlt}
-	// 					cardOnClick={() => this.handleClick(i)}
-	// 				/>
-	// 			);
-	// 		};
-	// 		console.log("Return Array:")
-	// 		console.log(SearchedArray);
-
-	// 		// Set the state SearchedArray to this local now-parsed SearchedArray
-	// 		// Call fillDisplayedArray in the callback
-	// 		this.setState({
-	// 			SearchedArray: SearchedArray
-	// 		}, function () {
-	// 			this.fillDisplayedArray();
-	// 		});
-	// 	};
-	// };
-
-	// // Determine the state of the page using ShowSaved and fill the DisplayedArray with the respective <Card /> objects
-	// fillDisplayedArray() {
-	// 	const toBeDisplayedArray = this.state.ShowSaved ? this.state.SavedArray : this.state.SearchedArray;
-	// 	this.setState({
-	// 		DisplayedArray: toBeDisplayedArray
-	// 	}, function () {
-	// 		//console.log(this.state.DisplayedArray);
-	// 	});
-	// };
-
+	// <Page /> render return
 	render() {
 		return (
 			<div>
