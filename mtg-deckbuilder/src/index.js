@@ -11,9 +11,9 @@ import './index.css';
 function Menu(props) {
 	return (
 		<div id="menu">
-			<button onClick={props.onClick}>
-				{!props.ShowSaved ? "Saved Cards" : "Search"}
-			</button>
+			<img id='menuLogo' className='menuItem' src='' alt='logo' />
+			<button className={props.PageState == 0 ? 'menuItem selected' : 'menuItem'} onClick={props.changeToSearched}>Search</button>
+			<button className={props.PageState == 1 ? 'menuItem selected' : 'menuItem'} onClick={props.changeToSaved}>Saved</button>
 		</div>
 	);
 };
@@ -22,7 +22,7 @@ function Menu(props) {
 function Search(props) {
 	return (
 		<div id="search">
-			<input 
+			<input
 				type='field'
 				value={props.SearchBarValue}
 				onChange={props.onChange}
@@ -64,7 +64,7 @@ class Page extends React.Component {
 		this.state = {					// State order:
 			SearchBarValue: "", 		// 1. String - value searched for using the API
 			APIArray: [], 				// 2. List - contains the exact JSON returned by the API
-			ShowSaved: false, 			// 3. Boolean - true = show SavedArray <Card />s, false = show <Search /> bar and ParsedArray <Card />s
+			PageState: 0, 			// 3. Boolean - true = show SavedArray <Card />s, false = show <Search /> bar and ParsedArray <Card />s
 			ParsedArray: [],			// 4a. Array - APIArray JSON parsed into a dictionary (name:data)
 			SavedArray: [], 			// 4b. Array - saved <Card /> elements
 			VirtualDisplayedArray: [],	// 5a. Array - holds the currently displayed card's dictionary values
@@ -92,7 +92,7 @@ class Page extends React.Component {
 	handleClick(i) {
 		let tempArray = this.state.SavedArray; // Mutable SavedArray
 
-		if (this.state.ShowSaved) { // Remove the clicked <Card /> element's entry from SavedArray
+		if (this.state.PageState == 1) { // Remove the clicked <Card /> element's entry from SavedArray
 			tempArray.splice(i, 1);
 		} else { // Get the clicked <Card /> element's entry from the VirtualDisplayedArray and add it to the SavedArray
 			let selectedObject = this.state.VirtualDisplayedArray[i];
@@ -106,10 +106,10 @@ class Page extends React.Component {
 		});
 	};
 
-	// <Menu /> button onClick handler
-	handlePageSwap = () => {
+	// <Menu /> button page content changer
+	changeTo(val) {
 		this.setState({
-			ShowSaved: (!this.state.ShowSaved ? true : false)
+			PageState: val
 		}, function () {
 			this.fulfillDisplay();
 		});
@@ -121,8 +121,10 @@ class Page extends React.Component {
 	renderMenuBar() {
 		return (
 			<Menu
-				ShowSaved={this.state.ShowSaved}
+				PageState={this.state.PageState}
 				onClick={this.handlePageSwap}
+				changeToSearched={() => this.changeTo(0)}
+				changeToSaved={() => this.changeTo(1)}
 			/>
 		);
 	};
@@ -192,20 +194,20 @@ class Page extends React.Component {
 		});
 	};
 
-	// Renders the 'DisplayedArray' corresponding to the status of ShowSaved
+	// Renders the 'DisplayedArray' corresponding to the status of PageState
 	// Splits the <Grid /> component into PhysicalDisplayedArray and VirtualDisplayedArray
 	// Physical contains the actual <Card /> elements,
 	// Virtual contains the respective dictionary values (name:data)
 	fulfillDisplay() {
 		const ParsedArray = this.state.ParsedArray; // Cards searched for
 		const SavedArray = this.state.SavedArray; 	// Cards saved
-		const ShowSaved = this.state.ShowSaved;
+		const PageState = this.state.PageState;
 
-		let backendArray = !ShowSaved ? ParsedArray : SavedArray;
+		let backendArray = PageState == 0 ? ParsedArray : SavedArray;
 		let frontendArray = [];
 
 		for (let i = 0; i < backendArray.length; i++) {
-			try{
+			try {
 				let key = ("card-" + i + "-" + backendArray[i].name);
 				let cardName = backendArray[i].name;
 				let cardSrc = (backendArray[i].data.image_uris.normal != undefined ? backendArray[i].data.image_uris.normal : "");
@@ -239,9 +241,9 @@ class Page extends React.Component {
 	// <Page /> render return
 	render() {
 		return (
-			<div>
+			<div id='page'>
 				{this.renderMenuBar()}
-				{!this.state.ShowSaved ? this.renderSearchBar() : ""}
+				{this.state.PageState == 0 ? this.renderSearchBar() : ""}
 				{this.renderGrid()}
 			</div>
 		);
