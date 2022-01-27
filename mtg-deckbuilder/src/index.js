@@ -11,7 +11,6 @@ import './index.css';
 function Preview(props) {
 	return (
 		<div id="preview">
-			{props.SavedArray}
 			Save deck as:
 			<input
 				type='field'
@@ -19,6 +18,7 @@ function Preview(props) {
 			<button>
 				Save
 			</button>
+			{props.PhysicalPreviewArray}
 		</div>
 	);
 };
@@ -55,12 +55,20 @@ function Search(props) {
 // <Card /> arrays calculated in <Page /> then rendered in <Grid />
 function Card(props) {
 	return (
-		<img
-			className='grid-card'
-			src={props.cardSrc}
-			alt={props.cardAlt}
-			onClick={props.onClick}
-		/>
+		<div className='grid-card'>
+			<img
+				src={props.cardSrc}
+				alt={props.cardAlt}
+			/>
+			<div 
+				className='grid-card-hover'
+				onClick={props.onClick}
+			>
+				<button>
+					{props.hoverAction}
+				</button>
+			</div>
+		</div>
 	);
 };
 
@@ -90,7 +98,8 @@ class Page extends React.Component {
 			VirtualDisplayedArray: [],	// 5a. Array - holds the currently displayed card's dictionary values
 			PhysicalDisplayedArray: [], // 5b. Array - holds the currently displayed card's <Card /> elements
 
-			PreviewArray: [],			//
+			VirtualPreviewArray: [],	//
+			PhysicalPreviewArray: [],	//
 			DeckFocus: "unnamedDeck",	//
 			SavedDecks: []				//
 		};
@@ -116,19 +125,30 @@ class Page extends React.Component {
 	handleClick(i) {
 		let tempArray = this.state.SavedArray; // Mutable SavedArray
 
-		if (this.state.PageState == 1) { // Remove the clicked <Card /> element's entry from SavedArray
-			tempArray.splice(i, 1);
-		} else { // Get the clicked <Card /> element's entry from the VirtualDisplayedArray and add it to the SavedArray
+		// if (this.state.PageState == 1) { // Remove the clicked <Card /> element's entry from SavedArray
+		// 	tempArray.splice(i, 1);
+		// } else { // Get the clicked <Card /> element's entry from the VirtualDisplayedArray and add it to the SavedArray
 			let selectedObject = this.state.VirtualDisplayedArray[i];
 			tempArray.push(selectedObject);
-		};
+		//};
 
 		this.setState({
 			SavedArray: tempArray
 		}, function () {
-			this.fulfillDisplay();
+			this.fulfillPreview();
 		});
 	};
+
+	handleRemove(i) {
+		let tempArray = this.state.SavedArray;
+
+		tempArray.splice(i , 1);
+		this.setState({
+			SavedArray: tempArray
+		}, function () {
+			this.fulfillPreview();
+		});
+	}
 
 	// <Menu /> button page content changer
 	changeTo(val) {
@@ -145,7 +165,7 @@ class Page extends React.Component {
 	renderPreview() {
 		return (
 			<Preview
-				SavedArray={this.state.PhysicalDisplayedArray}
+				PhysicalPreviewArray={this.state.PhysicalPreviewArray}
 			/>
 		);
 	};
@@ -228,6 +248,46 @@ class Page extends React.Component {
 		});
 	};
 
+	// 
+	fulfillPreview() {
+		const SavedArray = this.state.SavedArray;
+
+		let backendArray = SavedArray;
+		let frontendArray = [];
+
+		for(let i = 0; i < backendArray.length; i++) {
+			try {
+				let key = ("card-" + i + "-" + backendArray[i].name);
+				let cardName = backendArray[i].name;
+				let cardSrc = (backendArray[i].data.image_uris.normal != undefined ? backendArray[i].data.image_uris.normal : "");
+				let cardData = backendArray[i].data;
+				let onClick = () => this.handleRemove(i);
+
+				frontendArray.push(
+					<Card
+						key={key}
+						cardName={cardName}
+						cardSrc={cardSrc}
+						cardAlt={cardName}
+						cardData={cardData}
+						onClick={onClick}
+						hoverAction={"Remove"}
+					/>
+				);
+			} catch (error) {
+				backendArray.splice(i, 1); // If any of the variables above cannot be retrieved, remove that entry
+				i--; // Decrement to accomodate for the missing entry
+				console.log(error);
+				continue;
+			};
+		};
+
+		this.setState({
+			VirtualPreviewArray: backendArray,
+			PhysicalPreviewArray: frontendArray
+		});
+	};
+
 	// Renders the 'DisplayedArray' corresponding to the status of PageState
 	// Splits the <Grid /> component into PhysicalDisplayedArray and VirtualDisplayedArray
 	// Physical contains the actual <Card /> elements,
@@ -256,6 +316,7 @@ class Page extends React.Component {
 						cardAlt={cardName}
 						cardData={cardData}
 						onClick={onClick}
+						hoverAction={"+"}
 					/>
 				);
 			} catch (error) {
@@ -279,7 +340,6 @@ class Page extends React.Component {
 				{this.renderMenuBar()}
 				<div id='display'>
 					{this.renderGrid()}
-					
 				</div>
 				{this.renderPreview()}
 			</div>
