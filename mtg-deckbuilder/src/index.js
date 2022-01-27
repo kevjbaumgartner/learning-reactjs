@@ -11,13 +11,15 @@ import './index.css';
 function Preview(props) {
 	return (
 		<div id="preview">
-			Save deck as:
-			<input
-				type='field'
-			/>
-			<button>
-				Save
-			</button>
+			<div id='preview-options' className={props.PageState != 0 ? 'display-none' : ''}>
+				Save deck as:
+				<input
+					type='field'
+				/>
+				<button>
+					Save
+				</button>
+			</div>
 			{props.PhysicalPreviewArray}
 		</div>
 	);
@@ -60,7 +62,7 @@ function Card(props) {
 				src={props.cardSrc}
 				alt={props.cardAlt}
 			/>
-			<div 
+			<div
 				className='grid-card-hover'
 				onClick={props.onClick}
 			>
@@ -90,18 +92,17 @@ class Page extends React.Component {
 		this.state = {					// State order:
 			SearchBarValue: "", 		// 1. String - value searched for using the API
 			APIArray: [], 				// 2. List - contains the exact JSON returned by the API
-			PageState: 0, 				// 3. Int - Holds the current page state:
+			PageState: 0, 				// 3. Int - tracks the current page state:
 			// 0 = Searched
 			// 1 = Saved
 			ParsedArray: [],			// 4a. Array - APIArray JSON parsed into a dictionary (name:data)
 			SavedArray: [], 			// 4b. Array - saved <Card /> elements
 			VirtualDisplayedArray: [],	// 5a. Array - holds the currently displayed card's dictionary values
 			PhysicalDisplayedArray: [], // 5b. Array - holds the currently displayed card's <Card /> elements
-
-			VirtualPreviewArray: [],	//
-			PhysicalPreviewArray: [],	//
-			DeckFocus: "unnamedDeck",	//
-			SavedDecks: []				//
+			VirtualPreviewArray: [],	// 6a. Array - holds the currently previewed card's dictionary values
+			PhysicalPreviewArray: [],	// 6b. Array - holds the currently previewed card's <Card /> elements
+			SavedDecks: [],				// 7. Array - holds SavedArray arrays
+			DeckFocus: "unnamedDeck"	// 8. Int - tracks the currently viewed saved deck
 		};
 	};
 
@@ -121,17 +122,11 @@ class Page extends React.Component {
 		this.apiCall();
 	};
 
-	// <Grid /> <Card /> onClick handler
-	handleClick(i) {
+	// <Grid /> <Card /> adding onClick handler
+	handleAdd(i) {
 		let tempArray = this.state.SavedArray; // Mutable SavedArray
-
-		// if (this.state.PageState == 1) { // Remove the clicked <Card /> element's entry from SavedArray
-		// 	tempArray.splice(i, 1);
-		// } else { // Get the clicked <Card /> element's entry from the VirtualDisplayedArray and add it to the SavedArray
-			let selectedObject = this.state.VirtualDisplayedArray[i];
-			tempArray.push(selectedObject);
-		//};
-
+		let selectedObject = this.state.VirtualDisplayedArray[i];
+		tempArray.push(selectedObject);
 		this.setState({
 			SavedArray: tempArray
 		}, function () {
@@ -139,16 +134,16 @@ class Page extends React.Component {
 		});
 	};
 
+	// <Preview /> <Card /> removing onClick handler
 	handleRemove(i) {
 		let tempArray = this.state.SavedArray;
-
-		tempArray.splice(i , 1);
+		tempArray.splice(i, 1);
 		this.setState({
 			SavedArray: tempArray
 		}, function () {
 			this.fulfillPreview();
 		});
-	}
+	};
 
 	// <Menu /> button page content changer
 	changeTo(val) {
@@ -165,6 +160,7 @@ class Page extends React.Component {
 	renderPreview() {
 		return (
 			<Preview
+				PageState={this.state.PageState}
 				PhysicalPreviewArray={this.state.PhysicalPreviewArray}
 			/>
 		);
@@ -176,8 +172,8 @@ class Page extends React.Component {
 			<Menu
 				PageState={this.state.PageState}
 				onClick={this.handlePageSwap}
-				changeToSearched={() => this.changeTo(0)}
-				changeToSaved={() => this.changeTo(1)}
+				changeToSearched={() => this.changeTo(0)}	// Search
+				changeToSaved={() => this.changeTo(1)}		// Saved Decks
 				renderSearchBar={() => this.renderSearchBar()}
 			/>
 		);
@@ -232,7 +228,6 @@ class Page extends React.Component {
 	parseResults() {
 		const rawResults = this.state.APIArray;
 		let rawData = rawResults.data; // Actual card data is stored in the [Object].data
-
 		let ParsedArray = []; // name : data 
 		for (let i = 0; i < rawData.length; i++) {
 			ParsedArray.push({
@@ -240,7 +235,6 @@ class Page extends React.Component {
 				data: rawData[i]
 			});
 		};
-
 		this.setState({
 			ParsedArray: ParsedArray
 		}, function () {
@@ -248,14 +242,14 @@ class Page extends React.Component {
 		});
 	};
 
-	// 
+	// Renders the 'PreviewedArray'
 	fulfillPreview() {
 		const SavedArray = this.state.SavedArray;
 
 		let backendArray = SavedArray;
 		let frontendArray = [];
 
-		for(let i = 0; i < backendArray.length; i++) {
+		for (let i = 0; i < backendArray.length; i++) {
 			try {
 				let key = ("card-" + i + "-" + backendArray[i].name);
 				let cardName = backendArray[i].name;
@@ -306,7 +300,7 @@ class Page extends React.Component {
 				let cardName = backendArray[i].name;
 				let cardSrc = (backendArray[i].data.image_uris.normal != undefined ? backendArray[i].data.image_uris.normal : "");
 				let cardData = backendArray[i].data;
-				let onClick = () => this.handleClick(i);
+				let onClick = () => this.handleAdd(i);
 
 				frontendArray.push(
 					<Card
