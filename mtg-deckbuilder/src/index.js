@@ -2,108 +2,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+// Local imports
+import {Preview, Menu, Search, Grid, Saved, Card}  from './function-components.js';
+
 // CSS imports
 import './index.css';
-
-// ******************** FUNCTION COMPONENTS ******************** //
-
-// <Preview /> rendered in <Page />
-function Preview(props) {
-	return (
-		<div id="preview">
-			<div id='preview-options' className={props.PageState != 0 ? 'display-none' : ''}>
-				Save deck as:
-				<input
-					type='field'
-					value={props.PreviewSaveValue}
-					onChange={props.onChange}
-					placeholder='Enter a deck name!'
-				/>
-				<button onClick={props.onClick}>
-					<i className="fas fa-save"></i>
-				</button>
-			</div>
-			{props.PhysicalPreviewArray}
-		</div>
-	);
-};
-
-// <Menu /> rendered in <Page />
-function Menu(props) {
-	return (
-		<div id='menu'>
-			<img id='menuLogo' className='menuItem' src='./logo.png' alt='logo' />
-			<div className={props.PageState == 0 ? 'menuButton selected' : 'menuButton'} onClick={props.changeToSearched}>{props.renderSearchBar()}</div>
-			<button className={props.PageState == 1 ? 'menuButton selected' : 'menuButton'} onClick={props.changeToSaved}>Saved Decks</button>
-		</div>
-	);
-};
-
-// <Search /> rendered in <Menu />
-function Search(props) {
-	return (
-		<div id="search">
-			Search
-			<input
-				type='field'
-				value={props.SearchBarValue}
-				onChange={props.onChange}
-				placeholder='Enter a card name!'
-			/>
-			<button onClick={props.onClick}>
-				<i className="fas fa-search"></i>
-			</button>
-		</div>
-	);
-};
-
-// <Card /> arrays calculated in <Page /> then rendered in <Grid />
-function Card(props) {
-	return (
-		<div className='grid-card'>
-			<img
-				src={props.cardSrc}
-				alt={props.cardAlt}
-			/>
-			<div
-				className='grid-card-hover'
-				onClick={props.onClick}
-			>
-				<button>
-					{props.hoverAction}
-				</button>
-			</div>
-		</div>
-	);
-};
-
-// <Grid /> rendered in <Page />
-function Grid(props) {
-	return (
-		<div id='grid'>
-			{props.PhysicalDisplayedArray}
-		</div>
-	);
-};
-
-// <Saved /> rendered in <Page />
-function Saved(props) {
-	const SavedDecksList = props.SavedDecks.map((deck, index) =>
-		<li key={index} onClick={() => props.onClick(index)}>
-			{deck.name}
-			<br />
-			Cards: {deck.cards.length}
-		</li>
-	);
-
-	return (
-		<div id='saved'>
-			<ul>
-				{SavedDecksList}
-			</ul>
-		</div>
-	);
-};
 
 // ******************** REACT COMPONENTS ******************** //
 
@@ -156,10 +59,23 @@ class Page extends React.Component {
 	// Saves the currently previewed cards into the SavedDeck state with PreviewSaveValue as a key
 	handleSaveDeck = () => {
 		const SavedDecks = this.state.SavedDecks;
+
+		let SavedArray = this.state.SavedArray;
+		let PreviewSaveValue = this.state.PreviewSaveValue;
+
+		if(SavedArray.length < 1) {
+			console.log("Save deck error: no cards selected to save to deck.");
+			return;
+		} else if (PreviewSaveValue < 1) {
+			console.log("Save deck error: no deck name entered.");
+			return;
+		};
+
 		SavedDecks.push({
-			name: this.state.PreviewSaveValue,
-			cards: this.state.SavedArray
+			name: PreviewSaveValue,
+			cards: SavedArray
 		});
+		
 		this.setState({
 			SavedDecks: SavedDecks,
 			SavedArray: [],
@@ -169,7 +85,7 @@ class Page extends React.Component {
 		});
 	};
 
-	// 
+	// <Saved /> <li> onClick handler
 	handleSavedDeckClick = (val) => {
 		this.setState({
 			DeckFocus: val
@@ -297,13 +213,17 @@ class Page extends React.Component {
 				results => results.json()
 			).then(
 				(json) => {
-					this.setState({
-						APIArray: json
-					}, function () {
-						this.parseResults();
-					});
+					if(json.status == undefined){
+						this.setState({
+							APIArray: json
+						}, function () {
+							this.parseResults();
+						});
+					} else {
+						console.log("Error code: " + json.status);
+					};
 				}
-			)
+			);
 		} catch (error) {
 			console.log(error);
 		};
@@ -329,16 +249,13 @@ class Page extends React.Component {
 
 	// Renders the 'PreviewedArray'
 	fulfillPreview() {
-		console.log("fulfillPreview");
 		let tempArray = [];
 
 		if (this.state.PageState == 0) {
 			tempArray = this.state.SavedArray;
-		}
-		else if (this.state.PageState == 1 && this.state.DeckFocus != null) {
+		} else if (this.state.PageState == 1 && this.state.DeckFocus != null) {
 			tempArray = this.state.SavedDecks[this.state.DeckFocus].cards;
-		}
-		else{
+		} else{
 			this.setState({
 				VirtualPreviewArray: [],
 				PhysicalPreviewArray: []
