@@ -14,7 +14,6 @@ html, body, #root, a, button {
 	font-family: 'Montserrat', sans-serif;
 }
 
-
 /* General classes */
 .display-none {
 	display: none !important;
@@ -219,11 +218,39 @@ html, body, #root, a, button {
 	overflow-x: hidden;
 }
 
-#preview-options {
+#preview #preview-options {
 	margin: 0;
 	padding: 0;
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+	height: 60px;
+	align-items: center;
+}
+
+#preview #preview-options input {
+	border: none;
+	color: #fefefe;
+	background-color: #4e4e4e;
+	cursor: text;
+	padding: 5px;
+	border-radius: 5px;
+}
+
+#preview #preview-options button {
+	border: none;
+	cursor: pointer;
+	color: #fefefe;
+	background-color: transparent;
+	font-size: 20px;
+	padding: 0;
+	transition: all 0.1s ease-in-out;
+	opacity: 0.4;
+}
+
+#preview #preview-options button:hover {
+	opacity: 1;
 }
 
 #preview .grid-card {
@@ -284,4 +311,29 @@ html, body, #root, a, button {
 
 #preview .grid-card-hover:hover {
 	opacity: 1;
+}
+
+/* <Saved /> */
+#saved {
+	display: flex;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	height: fit-content;
+}
+
+#saved ul {
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row;
+	justify-content: space-evenly;
+	width: 95%;
+	height: fit-content;
+	padding: 2.5%;
+	user-select: none;
+}
+
+#saved ul li  {
+	display: flex;
+	cursor: pointer;
 }

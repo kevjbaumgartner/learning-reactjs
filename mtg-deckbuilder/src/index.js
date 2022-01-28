@@ -15,9 +15,12 @@ function Preview(props) {
 				Save deck as:
 				<input
 					type='field'
+					value={props.PreviewSaveValue}
+					onChange={props.onChange}
+					placeholder='Enter a deck name!'
 				/>
-				<button>
-					Save
+				<button onClick={props.onClick}>
+					<i className="fas fa-save"></i>
 				</button>
 			</div>
 			{props.PhysicalPreviewArray}
@@ -28,7 +31,7 @@ function Preview(props) {
 // <Menu /> rendered in <Page />
 function Menu(props) {
 	return (
-		<div id="menu">
+		<div id='menu'>
 			<img id='menuLogo' className='menuItem' src='./logo.png' alt='logo' />
 			<div className={props.PageState == 0 ? 'menuButton selected' : 'menuButton'} onClick={props.changeToSearched}>{props.renderSearchBar()}</div>
 			<button className={props.PageState == 1 ? 'menuButton selected' : 'menuButton'} onClick={props.changeToSaved}>Saved Decks</button>
@@ -77,8 +80,27 @@ function Card(props) {
 // <Grid /> rendered in <Page />
 function Grid(props) {
 	return (
-		<div id="grid">
+		<div id='grid'>
 			{props.PhysicalDisplayedArray}
+		</div>
+	);
+};
+
+// <Saved /> rendered in <Page />
+function Saved(props) {
+	const SavedDecksList = props.SavedDecks.map((deck, index) =>
+		<li key={index} onClick={() => props.onClick(index)}>
+			{deck.name}
+			<br />
+			Cards: {deck.cards.length}
+		</li>
+	);
+
+	return (
+		<div id='saved'>
+			<ul>
+				{SavedDecksList}
+			</ul>
 		</div>
 	);
 };
@@ -101,8 +123,9 @@ class Page extends React.Component {
 			PhysicalDisplayedArray: [], // 5b. Array - holds the currently displayed card's <Card /> elements
 			VirtualPreviewArray: [],	// 6a. Array - holds the currently previewed card's dictionary values
 			PhysicalPreviewArray: [],	// 6b. Array - holds the currently previewed card's <Card /> elements
-			SavedDecks: [],				// 7. Array - holds SavedArray arrays
-			DeckFocus: "unnamedDeck"	// 8. Int - tracks the currently viewed saved deck
+			PreviewSaveValue: "",		// 7. String - value saved as the name for a saved deck
+			SavedDecks: [],				// 8. Array - holds SavedArray arrays
+			DeckFocus: null				// 9. Int - tracks the currently viewed saved deck
 		};
 	};
 
@@ -110,9 +133,16 @@ class Page extends React.Component {
 
 	// <Search /> input onChange handler
 	// Add the typed char (e) to the input field value
-	handleChange = (e) => {
+	handleSearchChange = (e) => {
 		this.setState({
 			SearchBarValue: this.state.SearchBarValue = e.target.value
+		});
+	};
+
+	// <Preview /> input onChange handler
+	handlePreviewChange = (e) => {
+		this.setState({
+			PreviewSaveValue: this.state.PreviewSaveValue = e.target.value
 		});
 	};
 
@@ -120,6 +150,32 @@ class Page extends React.Component {
 	// Call the API using the search value in SearchBarValue
 	handleSearch = () => {
 		this.apiCall();
+	};
+
+	// <Preview /> button onClick Handler
+	// Saves the currently previewed cards into the SavedDeck state with PreviewSaveValue as a key
+	handleSaveDeck = () => {
+		const SavedDecks = this.state.SavedDecks;
+		SavedDecks.push({
+			name: this.state.PreviewSaveValue,
+			cards: this.state.SavedArray
+		});
+		this.setState({
+			SavedDecks: SavedDecks,
+			SavedArray: [],
+			PreviewSaveValue: ""
+		}, function () {
+			this.fulfillPreview();
+		});
+	};
+
+	// 
+	handleSavedDeckClick = (val) => {
+		this.setState({
+			DeckFocus: val
+		}, function () {
+			this.fulfillPreview();
+		});
 	};
 
 	// <Grid /> <Card /> adding onClick handler
@@ -136,13 +192,28 @@ class Page extends React.Component {
 
 	// <Preview /> <Card /> removing onClick handler
 	handleRemove(i) {
-		let tempArray = this.state.SavedArray;
-		tempArray.splice(i, 1);
-		this.setState({
-			SavedArray: tempArray
-		}, function () {
-			this.fulfillPreview();
-		});
+		let tempArray = [];
+
+		if (this.state.PageState == 0) {
+			tempArray = this.state.SavedArray;
+			tempArray.splice(i, 1);
+			this.setState({
+				SavedArray: tempArray
+			}, function () {
+				this.fulfillPreview();
+			});
+		}
+		else if (this.state.PageState == 1) {
+			tempArray = this.state.SavedDecks;
+			let subArray = tempArray[this.state.DeckFocus].cards;
+			subArray.splice(i, 1);
+			tempArray[this.state.DeckFocus].cards = subArray;
+			this.setState({
+				SavedDecks: tempArray
+			}, function () {
+				this.fulfillPreview();
+			});
+		};
 	};
 
 	// <Menu /> button page content changer
@@ -151,6 +222,7 @@ class Page extends React.Component {
 			PageState: val
 		}, function () {
 			this.fulfillDisplay();
+			this.fulfillPreview();
 		});
 	};
 
@@ -162,6 +234,9 @@ class Page extends React.Component {
 			<Preview
 				PageState={this.state.PageState}
 				PhysicalPreviewArray={this.state.PhysicalPreviewArray}
+				PreviewSaveValue={this.state.PreviewSaveValue}
+				onChange={this.handlePreviewChange}
+				onClick={this.handleSaveDeck}
 			/>
 		);
 	};
@@ -184,7 +259,7 @@ class Page extends React.Component {
 		return (
 			<Search
 				SearchBarValue={this.state.SearchBarValue}
-				onChange={this.handleChange}
+				onChange={this.handleSearchChange}
 				onClick={this.handleSearch}
 			/>
 		);
@@ -195,6 +270,16 @@ class Page extends React.Component {
 		return (
 			<Grid
 				PhysicalDisplayedArray={this.state.PhysicalDisplayedArray}
+			/>
+		);
+	};
+
+	// <Saved />
+	renderSaved() {
+		return (
+			<Saved
+				SavedDecks={this.state.SavedDecks}
+				onClick={this.handleSavedDeckClick}
 			/>
 		);
 	};
@@ -244,9 +329,24 @@ class Page extends React.Component {
 
 	// Renders the 'PreviewedArray'
 	fulfillPreview() {
-		const SavedArray = this.state.SavedArray;
+		console.log("fulfillPreview");
+		let tempArray = [];
 
-		let backendArray = SavedArray;
+		if (this.state.PageState == 0) {
+			tempArray = this.state.SavedArray;
+		}
+		else if (this.state.PageState == 1 && this.state.DeckFocus != null) {
+			tempArray = this.state.SavedDecks[this.state.DeckFocus].cards;
+		}
+		else{
+			this.setState({
+				VirtualPreviewArray: [],
+				PhysicalPreviewArray: []
+			});
+			return
+		};
+
+		let backendArray = tempArray;
 		let frontendArray = [];
 
 		for (let i = 0; i < backendArray.length; i++) {
@@ -329,13 +429,39 @@ class Page extends React.Component {
 
 	// <Page /> render return
 	render() {
+
+		// <Menu />
+		let menuElement = (
+			this.renderMenuBar()
+		);
+
+		// <Grid />
+		let gridElement = (
+			this.renderGrid()
+		);
+
+		// <Saved />
+		let savedElement = (
+			this.renderSaved()
+		);
+
+		// <div id='display'></div>
+		let displayElement = (
+			<div id='display'>
+				{this.state.PageState == 0 ? gridElement : savedElement}
+			</div>
+		);
+
+		// <Preview />
+		let previewElement = (
+			this.renderPreview()
+		);
+
 		return (
 			<div id='page'>
-				{this.renderMenuBar()}
-				<div id='display'>
-					{this.renderGrid()}
-				</div>
-				{this.renderPreview()}
+				{menuElement}
+				{displayElement}
+				{previewElement}
 			</div>
 		);
 	};
