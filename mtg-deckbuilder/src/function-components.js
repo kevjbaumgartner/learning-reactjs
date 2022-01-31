@@ -1,3 +1,24 @@
+// <Intro /> rendered in <Page />
+function Intro(props) {
+	return (
+		<div id='intro' className={props.IntroState == 1 ? 'opacity-zero pointer-events-none' : ''}>
+			<h1>MTG: Deck Builder</h1>
+			<div>
+				Search
+				<input
+					type='field'
+					value={props.SearchBarValue}
+					onChange={props.onChange}
+					placeholder='Start by entering a card name!'
+				/>
+				<button onClick={props.onClick}>
+					<i className="fas fa-search"></i>
+				</button>
+			</div>
+		</div>
+	);
+};
+
 // <Preview /> rendered in <Page />
 function Preview(props) {
 	return (
@@ -96,7 +117,9 @@ function Saved(props) {
 	);
 };
 
+// Export all of the components
 export {
+	Intro,
 	Preview,
 	Menu,
 	Search,

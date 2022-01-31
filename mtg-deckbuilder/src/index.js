@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 // Local imports
-import {Preview, Menu, Search, Grid, Saved, Card}  from './function-components.js';
+import {Intro, Preview, Menu, Search, Grid, Saved, Card}  from './function-components.js';
 
 // CSS imports
 import './index.css';
@@ -15,6 +15,7 @@ class Page extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {					// State order:
+			IntroState: 0,				// 0. Int - if the intro search has be done or not
 			SearchBarValue: "", 		// 1. String - value searched for using the API
 			APIArray: [], 				// 2. List - contains the exact JSON returned by the API
 			PageState: 0, 				// 3. Int - tracks the current page state:
@@ -142,7 +143,27 @@ class Page extends React.Component {
 		});
 	};
 
+	// <Intro /> button onClick handler w/ fade out
+	handleIntro = () => {
+		this.apiCall();
+		this.setState({
+			IntroState: 1
+		});
+	};
+
 	// ******************** RENDER (function component) METHODS ******************** //
+
+	// <Intro />
+	renderIntro() {
+		return (
+			<Intro
+				SearchBarValue={this.state.SearchBarValue}
+				onChange={this.handleSearchChange}
+				onClick={this.handleIntro}
+				IntroState={this.state.IntroState}
+			/>
+		);
+	};
 
 	// <Preview />
 	renderPreview() {
@@ -347,6 +368,11 @@ class Page extends React.Component {
 	// <Page /> render return
 	render() {
 
+		// <Intro />
+		let introElement = (
+			this.renderIntro()
+		);
+
 		// <Menu />
 		let menuElement = (
 			this.renderMenuBar()
@@ -376,6 +402,7 @@ class Page extends React.Component {
 
 		return (
 			<div id='page'>
+				{introElement}
 				{menuElement}
 				{displayElement}
 				{previewElement}
