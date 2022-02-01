@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 // Local imports
-import {Intro, Preview, Menu, Search, Grid, Saved, Card}  from './function-components.js';
+import { Intro, Preview, Menu, Search, Grid, Saved, Card } from './function-components.js';
 
 // CSS imports
 import './index.css';
@@ -56,6 +56,18 @@ class Page extends React.Component {
 		this.apiCall();
 	};
 
+	// Fires the API search methods on an 'Enter' key press
+	// !e.repeat disallows for the enter key to be held down
+	handleEnter = (e) => {
+		if (e.key === 'Enter' && !e.repeat) {
+			if (!this.state.IntroState) {
+				this.handleIntro();
+			} else {
+				this.handleSearch();
+			};
+		};
+	};
+
 	// <Preview /> button onClick Handler
 	// Saves the currently previewed cards into the SavedDeck state with PreviewSaveValue as a key
 	handleSaveDeck = () => {
@@ -64,7 +76,7 @@ class Page extends React.Component {
 		let SavedArray = this.state.SavedArray;
 		let PreviewSaveValue = this.state.PreviewSaveValue;
 
-		if(SavedArray.length < 1) {
+		if (SavedArray.length < 1) {
 			console.log("Save deck error: no cards selected to save to deck.");
 			return;
 		} else if (PreviewSaveValue < 1) {
@@ -76,7 +88,7 @@ class Page extends React.Component {
 			name: PreviewSaveValue,
 			cards: SavedArray
 		});
-		
+
 		this.setState({
 			SavedDecks: SavedDecks,
 			SavedArray: [],
@@ -234,7 +246,7 @@ class Page extends React.Component {
 				results => results.json()
 			).then(
 				(json) => {
-					if(json.status == undefined){
+					if (json.status == undefined) {
 						this.setState({
 							APIArray: json
 						}, function () {
@@ -276,7 +288,7 @@ class Page extends React.Component {
 			tempArray = this.state.SavedArray;
 		} else if (this.state.PageState == 1 && this.state.DeckFocus != null) {
 			tempArray = this.state.SavedDecks[this.state.DeckFocus].cards;
-		} else{
+		} else {
 			this.setState({
 				VirtualPreviewArray: [],
 				PhysicalPreviewArray: []
@@ -401,7 +413,7 @@ class Page extends React.Component {
 		);
 
 		return (
-			<div id='page'>
+			<div id='page' onKeyDown={this.handleEnter}>
 				{introElement}
 				{menuElement}
 				{displayElement}

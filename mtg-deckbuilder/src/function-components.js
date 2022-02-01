@@ -4,7 +4,6 @@ function Intro(props) {
 		<div id='intro' className={props.IntroState == 1 ? 'opacity-zero pointer-events-none' : ''}>
 			<h1>MTG: Deck Builder</h1>
 			<div>
-				Search
 				<input
 					type='field'
 					value={props.SearchBarValue}
@@ -22,20 +21,25 @@ function Intro(props) {
 // <Preview /> rendered in <Page />
 function Preview(props) {
 	return (
-		<div id="preview">
-			<div id='preview-options' className={props.PageState != 0 ? 'display-none' : ''}>
-				Save deck as:
-				<input
-					type='field'
-					value={props.PreviewSaveValue}
-					onChange={props.onChange}
-					placeholder='Enter a deck name!'
-				/>
-				<button onClick={props.onClick}>
-					<i className="fas fa-save"></i>
-				</button>
+		<div id="preview" className={props.PhysicalPreviewArray.length == 0 ? 'preview-is-empty' : ''}>
+			<div id='preview-content' className={props.PhysicalPreviewArray.length == 0 ? 'display-none' : ''}>
+				<div id='preview-options' className={props.PageState != 0 ? 'display-none' : ''}>
+					Save deck as:
+					<input
+						type='field'
+						value={props.PreviewSaveValue}
+						onChange={props.onChange}
+						placeholder='Enter a deck name!'
+					/>
+					<button onClick={props.onClick}>
+						<i className="fas fa-save"></i>
+					</button>
+				</div>
+				{props.PhysicalPreviewArray}
 			</div>
-			{props.PhysicalPreviewArray}
+			<div id='preview-empty' className={props.PhysicalPreviewArray.length != 0 ? 'display-none' : ''}>
+				{props.PageState != 0 ? 'Pick a deck!' : 'Pick out some cards!'}
+			</div>
 		</div>
 	);
 };
