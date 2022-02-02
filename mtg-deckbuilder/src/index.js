@@ -98,6 +98,21 @@ class Page extends React.Component {
 		});
 	};
 
+	// 
+	handleDeleteDeck = () => {
+		const SavedDecks = this.state.SavedDecks;
+		const DeckFocus = this.state.DeckFocus;
+
+		SavedDecks.splice(DeckFocus, 1);
+
+		this.setState({
+			SavedDecks: SavedDecks,
+			DeckFocus: null
+		}, function () {
+			this.fulfillPreview();
+		});
+	};
+
 	// <Saved /> <li> onClick handler
 	handleSavedDeckClick = (val) => {
 		this.setState({
@@ -148,7 +163,8 @@ class Page extends React.Component {
 	// <Menu /> button page content changer
 	changeTo(val) {
 		this.setState({
-			PageState: val
+			PageState: val,
+			DeckFocus: null
 		}, function () {
 			this.fulfillDisplay();
 			this.fulfillPreview();
@@ -185,7 +201,8 @@ class Page extends React.Component {
 				PhysicalPreviewArray={this.state.PhysicalPreviewArray}
 				PreviewSaveValue={this.state.PreviewSaveValue}
 				onChange={this.handlePreviewChange}
-				onClick={this.handleSaveDeck}
+				onSave={this.handleSaveDeck}
+				onDelete={this.handleDeleteDeck}
 			/>
 		);
 	};

@@ -293,7 +293,7 @@ html, body, #root, a, button {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
-	justify-content: space-evenly;
+	justify-content: center;
 	height: 60px;
 	align-items: center;
 }
@@ -316,6 +316,7 @@ html, body, #root, a, button {
 	padding: 0;
 	transition: all 0.1s ease-in-out;
 	opacity: 0.4;
+	margin-left: 10px;
 }
 
 #preview #preview-options button:hover {
@@ -391,11 +392,12 @@ html, body, #root, a, button {
 	padding: 0;
 	color: #fefefe;
 	opacity: 0.4;
+	text-align: center;
 }
 
 .preview-is-empty {
 	align-items: center !important;
-    justify-content: center !important;
+	justify-content: center !important;
 }
 
 /* <Saved /> */
@@ -416,9 +418,73 @@ html, body, #root, a, button {
 	height: fit-content;
 	padding: 2.5%;
 	user-select: none;
+	margin: 0;
 }
 
 #saved ul li {
 	display: flex;
 	cursor: pointer;
+}
+
+#saved .grid-card {
+	z-index: 1010;
+	position: relative;
+	display: inline-block;
+	width: 24%;
+	padding: 0;
+	margin: 0.5%;
+	height: fit-content;
+}
+
+#saved .grid-card:last-child {
+	margin-right: auto;
+}
+
+#saved .grid-card img {
+	padding: 0;
+	width: 100%;
+	background-color: transparent;
+	border-radius: 4.5% / 3.5%;
+	box-shadow: 1px 2px 6px 0px #999;
+	cursor: pointer;
+	transition: transform 0.1s ease-in-out;
+}
+
+#saved .grid-card-hover {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	z-index: 1011;
+	background-color: rgba(0, 0, 0, 0.4);
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	transition: all 0.1s ease-in-out;
+	border-radius: 4.5% / 3.5%;
+	cursor: pointer;
+	color: #fefefe;
+	text-align: center;
+}
+
+#saved .grid-card-hover h1 {
+	font-weight: bold;
+	margin: 0;
+	padding: 0;
+	text-transform: capitalize;
+}
+
+#saved .grid-card-hover button {
+	border: none;
+	background-color: transparent;
+	font-size: 50px;
+	font-weight: bold;
+	color: #fefefe;
+	cursor: pointer;
+}
+
+#saved .grid-card-hover:hover {
+	background-color: rgba(0, 0, 0, 0.6);
 }

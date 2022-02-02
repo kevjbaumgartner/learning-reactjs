@@ -23,22 +23,24 @@ function Preview(props) {
 	return (
 		<div id="preview" className={props.PhysicalPreviewArray.length == 0 ? 'preview-is-empty' : ''}>
 			<div id='preview-content' className={props.PhysicalPreviewArray.length == 0 ? 'display-none' : ''}>
-				<div id='preview-options' className={props.PageState != 0 ? 'display-none' : ''}>
-					Save deck as:
+				<div id='preview-options' className={props.PageState != 0 ? '' : ''}>
+					{props.PageState != 0 ? 'Delete deck?' : 'Save deck as:'}
+					<br />
 					<input
 						type='field'
 						value={props.PreviewSaveValue}
 						onChange={props.onChange}
 						placeholder='Enter a deck name!'
+						className={props.PageState != 0 ? 'display-none' : ''}
 					/>
-					<button onClick={props.onClick}>
-						<i className="fas fa-save"></i>
+					<button onClick={props.PageState != 0 ? props.onDelete : props.onSave}>
+						<i className={props.PageState != 0 ? "fas fa-trash" : "fas fa-save"}></i>
 					</button>
 				</div>
 				{props.PhysicalPreviewArray}
 			</div>
 			<div id='preview-empty' className={props.PhysicalPreviewArray.length != 0 ? 'display-none' : ''}>
-				{props.PageState != 0 ? 'Pick a deck!' : 'Pick out some cards!'}
+				{props.PageState != 0 ? 'Pick a deck to start editing it!' : 'Pick out some cards to start building a deck!'}
 			</div>
 		</div>
 	);
@@ -105,10 +107,17 @@ function Grid(props) {
 // <Saved /> rendered in <Page />
 function Saved(props) {
 	const SavedDecksList = props.SavedDecks.map((deck, index) =>
-		<li key={index} onClick={() => props.onClick(index)}>
-			{deck.name}
-			<br />
-			Cards: {deck.cards.length}
+		<li key={index} className='grid-card' onClick={() => props.onClick(index)}>
+			<img
+				src={deck.cards[0].data.image_uris.normal}
+				alt={deck.cards[0].data.name}
+			/>
+			<div
+				className='grid-card-hover'
+			>
+				<h1>{deck.name}</h1>
+				Cards: {deck.cards.length}
+			</div>
 		</li>
 	);
 
