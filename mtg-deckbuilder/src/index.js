@@ -16,7 +16,7 @@ class Page extends React.Component {
 		super(props);
 		this.state = {					// State order:
 			IntroState: 0,				// 0. Int - if the intro search has be done or not
-			SearchBarValue: "", 		// 1. String - value searched for using the API
+			SearchBarValue: '', 		// 1. String - value searched for using the API
 			APIArray: [], 				// 2. List - contains the exact JSON returned by the API
 			PageState: 0, 				// 3. Int - tracks the current page state:
 			// 0 = Searched
@@ -27,7 +27,7 @@ class Page extends React.Component {
 			PhysicalDisplayedArray: [], // 5b. Array - holds the currently displayed card's <Card /> elements
 			VirtualPreviewArray: [],	// 6a. Array - holds the currently previewed card's dictionary values
 			PhysicalPreviewArray: [],	// 6b. Array - holds the currently previewed card's <Card /> elements
-			PreviewSaveValue: "",		// 7. String - value saved as the name for a saved deck
+			PreviewSaveValue: '',		// 7. String - value saved as the name for a saved deck
 			SavedDecks: [],				// 8. Array - holds SavedArray arrays
 			DeckFocus: null				// 9. Int - tracks the currently viewed saved deck
 		};
@@ -68,7 +68,7 @@ class Page extends React.Component {
 		};
 	};
 
-	// <Preview /> button onClick Handler
+	// <Preview /> save button onClick Handler
 	// Saves the currently previewed cards into the SavedDeck state with PreviewSaveValue as a key
 	handleSaveDeck = () => {
 		const SavedDecks = this.state.SavedDecks;
@@ -77,10 +77,10 @@ class Page extends React.Component {
 		let PreviewSaveValue = this.state.PreviewSaveValue;
 
 		if (SavedArray.length < 1) {
-			console.log("Save deck error: no cards selected to save to deck.");
+			console.log('Save deck error: no cards selected to save to deck.');
 			return;
 		} else if (PreviewSaveValue < 1) {
-			console.log("Save deck error: no deck name entered.");
+			console.log('Save deck error: no deck name entered.');
 			return;
 		};
 
@@ -92,13 +92,14 @@ class Page extends React.Component {
 		this.setState({
 			SavedDecks: SavedDecks,
 			SavedArray: [],
-			PreviewSaveValue: ""
+			PreviewSaveValue: ''
 		}, function () {
 			this.fulfillPreview();
 		});
 	};
 
-	// 
+	// <Preview /> trash button onClick Handler
+	// Removes the currently focused deck from SavedDecks and resets the DeckFocus state
 	handleDeleteDeck = () => {
 		const SavedDecks = this.state.SavedDecks;
 		const DeckFocus = this.state.DeckFocus;
@@ -114,6 +115,7 @@ class Page extends React.Component {
 	};
 
 	// <Saved /> <li> onClick handler
+	// Sets the DeckFocus to the index of the clicked saved deck
 	handleSavedDeckClick = (val) => {
 		this.setState({
 			DeckFocus: val
@@ -146,8 +148,7 @@ class Page extends React.Component {
 			}, function () {
 				this.fulfillPreview();
 			});
-		}
-		else if (this.state.PageState == 1) {
+		} else if (this.state.PageState == 1) {
 			tempArray = this.state.SavedDecks;
 			let subArray = tempArray[this.state.DeckFocus].cards;
 			subArray.splice(i, 1);
@@ -161,7 +162,7 @@ class Page extends React.Component {
 	};
 
 	// <Menu /> button page content changer
-	changeTo(val) {
+	handlePageChange(val) {
 		this.setState({
 			PageState: val,
 			DeckFocus: null
@@ -213,8 +214,8 @@ class Page extends React.Component {
 			<Menu
 				PageState={this.state.PageState}
 				onClick={this.handlePageSwap}
-				changeToSearched={() => this.changeTo(0)}	// Search
-				changeToSaved={() => this.changeTo(1)}		// Saved Decks
+				changeToSearched={() => this.handlePageChange(0)}	// Search
+				changeToSaved={() => this.handlePageChange(1)}		// Saved Decks
 				renderSearchBar={() => this.renderSearchBar()}
 			/>
 		);
@@ -255,10 +256,10 @@ class Page extends React.Component {
 	// GET search results from the Scryfall API
 	// Store the results in APIArray and call parseResults in the callback
 	apiCall() {
-		const searchString = "https://api.scryfall.com/cards/search?q=";
+		const searchString = 'https://api.scryfall.com/cards/search?q=';
 		let queryString = searchString + this.state.SearchBarValue;
 		try {
-			console.log("API call made: " + queryString);
+			console.log('API call made: ' + queryString);
 			fetch(queryString).then(
 				results => results.json()
 			).then(
@@ -270,7 +271,7 @@ class Page extends React.Component {
 							this.parseResults();
 						});
 					} else {
-						console.log("Error code: " + json.status);
+						console.log('Error code: ' + json.status);
 					};
 				}
 			);
@@ -318,9 +319,9 @@ class Page extends React.Component {
 
 		for (let i = 0; i < backendArray.length; i++) {
 			try {
-				let key = ("card-" + i + "-" + backendArray[i].name);
+				let key = ('card-' + i + '-' + backendArray[i].name);
 				let cardName = backendArray[i].name;
-				let cardSrc = (backendArray[i].data.image_uris.normal != undefined ? backendArray[i].data.image_uris.normal : "");
+				let cardSrc = (backendArray[i].data.image_uris.normal != undefined ? backendArray[i].data.image_uris.normal : '');
 				let cardData = backendArray[i].data;
 				let onClick = () => this.handleRemove(i);
 
@@ -332,7 +333,7 @@ class Page extends React.Component {
 						cardAlt={cardName}
 						cardData={cardData}
 						onClick={onClick}
-						hoverAction={"Remove"}
+						hoverAction={'Remove'}
 					/>
 				);
 			} catch (error) {
@@ -363,9 +364,9 @@ class Page extends React.Component {
 
 		for (let i = 0; i < backendArray.length; i++) {
 			try {
-				let key = ("card-" + i + "-" + backendArray[i].name);
+				let key = ('card-' + i + '-' + backendArray[i].name);
 				let cardName = backendArray[i].name;
-				let cardSrc = (backendArray[i].data.image_uris.normal != undefined ? backendArray[i].data.image_uris.normal : "");
+				let cardSrc = (backendArray[i].data.image_uris.normal != undefined ? backendArray[i].data.image_uris.normal : '');
 				let cardData = backendArray[i].data;
 				let onClick = () => this.handleAdd(i);
 
@@ -377,7 +378,7 @@ class Page extends React.Component {
 						cardAlt={cardName}
 						cardData={cardData}
 						onClick={onClick}
-						hoverAction={"+"}
+						hoverAction={'+'}
 					/>
 				);
 			} catch (error) {

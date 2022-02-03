@@ -11,7 +11,7 @@ function Intro(props) {
 					placeholder='Start by entering a card name!'
 				/>
 				<button onClick={props.onClick}>
-					<i className="fas fa-search"></i>
+					<i className='fas fa-search'></i>
 				</button>
 			</div>
 		</div>
@@ -21,7 +21,7 @@ function Intro(props) {
 // <Preview /> rendered in <Page />
 function Preview(props) {
 	return (
-		<div id="preview" className={props.PhysicalPreviewArray.length == 0 ? 'preview-is-empty' : ''}>
+		<div id='preview' className={props.PhysicalPreviewArray.length == 0 ? 'preview-is-empty' : ''}>
 			<div id='preview-content' className={props.PhysicalPreviewArray.length == 0 ? 'display-none' : ''}>
 				<div id='preview-options' className={props.PageState != 0 ? '' : ''}>
 					{props.PageState != 0 ? 'Delete deck?' : 'Save deck as:'}
@@ -34,7 +34,7 @@ function Preview(props) {
 						className={props.PageState != 0 ? 'display-none' : ''}
 					/>
 					<button onClick={props.PageState != 0 ? props.onDelete : props.onSave}>
-						<i className={props.PageState != 0 ? "fas fa-trash" : "fas fa-save"}></i>
+						<i className={props.PageState != 0 ? 'fas fa-trash' : 'fas fa-save'}></i>
 					</button>
 				</div>
 				{props.PhysicalPreviewArray}
@@ -60,7 +60,7 @@ function Menu(props) {
 // <Search /> rendered in <Menu />
 function Search(props) {
 	return (
-		<div id="search">
+		<div id='search'>
 			Search
 			<input
 				type='field'
@@ -69,7 +69,7 @@ function Search(props) {
 				placeholder='Enter a card name!'
 			/>
 			<button onClick={props.onClick}>
-				<i className="fas fa-search"></i>
+				<i className='fas fa-search'></i>
 			</button>
 		</div>
 	);
